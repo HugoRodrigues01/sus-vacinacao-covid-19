@@ -3,12 +3,13 @@
 """
 
 from PyQt6 import QtCore, QtGui, QtWidgets
-from windows_ui import Ui_MainWindow
-from windows import LoadingWindow
+from view import Ui_MainWindow
+from controller import LoadingWindow
 from models import APISUSControl
 import sys
 from rich.console import Console
 from rich import print
+import time
 
 console: Console = Console()
 
@@ -17,7 +18,7 @@ WIDTH: int = 700
 HEIGHT: int = 500
 
 
-class MainWindowControl(QtWidgets.QMainWindow):
+class MainWindowControl(QtWidgets.QMainWindow, QtCore.QRunnable):
 
     def __init__(self, *args, **kwargs):
         super(MainWindowControl, self).__init__(*args, **kwargs)
@@ -31,11 +32,16 @@ class MainWindowControl(QtWidgets.QMainWindow):
 
         self.create_widgets_ui()
 
-        self.load_infos()
+        self.create_window()
 
         self.window.button_next.pressed.connect(self.next_page)
 
-        self.create_window()
+        # Loading the load window
+        load_window = self.create_load_window()
+
+        self.time = QtCore.QTimer()
+        self.time.singleShot(3000, self.load_infos)
+        self.time.start()
 
     def create_window(self) -> None:
 
@@ -45,8 +51,20 @@ class MainWindowControl(QtWidgets.QMainWindow):
         self.resize(WIDTH, HEIGHT)
         self.show()
 
+    def create_load_window(self) -> None:
+
         self.load = LoadingWindow(self)
         self.load.create_window()
+
+        # Disable the main window
+        self.setDisabled(True)
+
+        for value in range(90):
+            self.load.value_pregress_bar = value
+            time.sleep(0.03)
+
+            # keeping the thread pool intact
+            QtWidgets.QApplication.processEvents()
 
     def create_widgets_ui(self) -> None:
 
@@ -63,7 +81,7 @@ class MainWindowControl(QtWidgets.QMainWindow):
         """)
         
         self.window.statusBar.addWidget(self.amount)
-
+    
     def add_info(self, headers: list, infos: list, _id: str, row: int, column: int=0) -> None:
         """
         Add infos of SUS of API into a widget and then, insert it into the window.
@@ -117,7 +135,7 @@ class MainWindowControl(QtWidgets.QMainWindow):
 
         # Add new container in scroll area
         self.window.gridLayout_5.addWidget(frame, row, column)
-
+    
     def load_infos(self) -> None:
         """
         This function going to load the all datas of SUS of API.
@@ -164,6 +182,12 @@ class MainWindowControl(QtWidgets.QMainWindow):
             self.amount.setText(f"Amount of people: {len(self.data['hits']['hits'])}")
             
             print(f"Number page: {self.api.get_number_page}")
+
+            # Closing the load window
+            self.load.hide_window()
+
+            # Abilit the main window
+            self.setDisabled(False)
 
     def next_page(self) -> None:
         """
