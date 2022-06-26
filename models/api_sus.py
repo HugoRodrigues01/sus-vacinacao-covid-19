@@ -1,7 +1,6 @@
 import requests
 import json
-import numpy as np
-from pickle import dump, loads
+import sys
 
 # Basic auth
 USER: str = "imunizacao_public"
@@ -14,7 +13,7 @@ class APISUSControl:
 
     # The API´s data
     __data: requests.Response | list = []
-    
+
     # The number of page of API
     __number_page: int = 1
 
@@ -42,7 +41,7 @@ class APISUSControl:
         # get the id for the next page
         payload: str = json.dumps({"scroll_id": cls.__data.json()["_scroll_id"]})
 
-        headers = {"Content-Type": "application/json"}
+        headers: dict = {"Content-Type": "application/json"}
 
         # Get the next page of SUS´s API
         cls.__data = requests.request(
@@ -64,7 +63,11 @@ if __name__ == "__main__":
     api = APISUSControl()
     api.api_start()
 
+    from rich import print
+
     novo = api.get_data()
+
+    print(novo["hits"]["hits"])
     #
     # print(api.get_number_page)
     # # print(novo["hits"]["hits"])
