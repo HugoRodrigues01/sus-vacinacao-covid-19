@@ -1,0 +1,15 @@
+QLabel {
+    color: #FFF;
+    font-size: 16pt;
+    max-height: 50px;
+}
+
+QPushButton{
+    border: 2px solid rgba(72, 14, 74, 1);
+    color: white;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
